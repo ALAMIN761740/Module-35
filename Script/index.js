@@ -1,5 +1,30 @@
 
 
+const showLoader =()=>{
+    document.getElementById("loader").classList.remove("hidden");
+    document.getElementById("Video-Container").classList.add("hidden");
+};
+const hiddenLoader =()=>{
+    document.getElementById("loader").classList.add("hidden");
+    document.getElementById("Video-Container").classList.remove("hidden");
+};
+
+
+const secondsToHMS = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    // দুই ডিজিটে দেখানোর জন্য padStart
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+
+
+
+
+
+
 function removeActiveClass(){
     const activeButtons = document.getElementsByClassName("active");
 
@@ -22,10 +47,11 @@ function loadCategories() {
 
 // video -----------fetch
 function loadVideos ( searchText = ""){
+    showLoader();
     fetch(`https://openapi.programming-hero.com/api/phero-tube/videos?title=${searchText}`)
     .then((res)=>res.json())
     .then((data)=>{
-        document.getElementById("btn-All").classList.add("active");
+        document.getElementById("btn_All").classList.add("active");
         displayVideos(data.videos)
     } );
 }
@@ -33,6 +59,7 @@ function loadVideos ( searchText = ""){
 
 
 const loadCategoriesVideos = (id) => {
+    showLoader();
     const url =`
     https://openapi.programming-hero.com/api/phero-tube/category/${id}
     `;
@@ -116,6 +143,12 @@ function displayCategories (categories){
 
 
 
+
+
+
+
+
+
 // loadVideo-------------
 const displayVideos = (videos) => {
     const videoContainer = document.getElementById("Video-Container");
@@ -134,6 +167,9 @@ const displayVideos = (videos) => {
 
     videos.forEach((video) => {
         // console.log(video);
+        const timeInSeconds = video.others?.posted_date;
+        const displayTime = timeInSeconds ? secondsToHMS(parseInt(timeInSeconds)) : "";
+
 
         const videoCard =document.createElement("div");
         videoCard.innerHTML = `
@@ -142,7 +178,11 @@ const displayVideos = (videos) => {
             <figure class="relative">
                 <img class="rounded-lg w-full h-[150px] object-cover"
                 src="${video.thumbnail}"
-                alt="Shoes" /> <span class="absolute bottom-2 right-2 text-sm rounded-lg text-white bg-black px-2">3hrs 56 min ago</span>
+                alt="Shoes" /> 
+                <span class="absolute bottom-2 right-2 text-sm rounded-lg text-white bg-black px-2">
+                    ${displayTime}
+                </span>
+
             </figure>
             <div class=" flex gap-3 px-0 py-5">
                 <div class="profile">
@@ -154,9 +194,8 @@ const displayVideos = (videos) => {
                 </div>
 
                 <div class="intro">
-                    <h2 class="text-lg font-semibold">Midnight Serenade</h2>
-                    <p class="text-sm text-gray-400 flex gap-2">${video.authors[0].profile_name}
-                    
+                    <h2 class="text-lg font-semibold">${video.title}</h2>
+                    <p class="text-sm text-gray-400 flex gap-2">${video.authors?.[0]?.profile_name || "Unknown Author"}
                     ${video.authors[0].verified == true ? `<img class="w-6  " src="https://img.icons8.com/?size=32&id=AOpCOemSYvTO&format=png" alt="">` : `` }
                     </p>
                     <p class="text-sm text-gray-400">${video.others.views}</p>
@@ -169,7 +208,8 @@ const displayVideos = (videos) => {
 
         videoContainer.append(videoCard);
     });
-}
+    hiddenLoader();
+};
 
 
 document.getElementById("search-input").addEventListener("keyup",(e)=>{
